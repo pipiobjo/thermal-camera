@@ -96,5 +96,5 @@ void loop(void)
   server.handleClient();
 
   delay(1000);
-  // cam.takeAPic();
+  cam.takeAPic();
 }

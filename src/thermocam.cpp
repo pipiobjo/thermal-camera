@@ -1,138 +1,87 @@
 #include <Arduino.h>
+#include <Wire.h>
 #include <thermocam.h>
-#include <Adafruit_MLX90640.h>
 
-Adafruit_MLX90640 mlx;
-float frame[32 * 24]; // buffer for full frame of temperatures
+#include "MLX90640_API.h"
+#include "MLX90640_I2C_Driver.h"
 
-// uncomment *one* of the below
-#define PRINT_TEMPERATURES
-// #define PRINT_ASCIIART
+const byte MLX90640_address = 0x33; // Default 7-bit unshifted address of the MLX90640
+
+#define TA_SHIFT 8 // Default shift for MLX90640 in open air
+
+static float mlx90640To[768];
+paramsMLX90640 mlx90640;
+
+// Returns true if the MLX90640 is detected on the I2C bus
+boolean isConnected()
+{
+  Wire.beginTransmission((uint8_t)MLX90640_address);
+  if (Wire.endTransmission() != 0)
+    return (false); // Sensor did not ACK
+  return (true);
+}
 
 void thermocam::setupCam()
 {
-    Serial.println("start setup cam");
+  Wire.begin();
+  Wire.setClock(400000); // Increase I2C clock speed to 400kHz
 
-    Serial.println("Adafruit MLX90640 Simple Test");
-    if (!mlx.begin(MLX90640_I2CADDR_DEFAULT, &Wire))
-    {
-        Serial.println("MLX90640 not found!");
-        delay(10);
-    }
-    Serial.println("Found Adafruit MLX90640");
+  while (!Serial)
+    ; // Wait for user to open terminal
+  Serial.println("MLX90640 IR Array Example");
 
-    Serial.print("Serial number: ");
-    Serial.print(mlx.serialNumber[0], HEX);
-    Serial.print(mlx.serialNumber[1], HEX);
-    Serial.println(mlx.serialNumber[2], HEX);
-    // mlx.setMode(MLX90640_INTERLEAVED);
-    // mlx.setMode(MLX90640_CHESS);
-    Serial.print("Current mode: ");
-    if (mlx.getMode() == MLX90640_CHESS)
-    {
-        Serial.println("Chess");
-    }
-    else
-    {
-        Serial.println("Interleave");
-    }
+  if (isConnected() == false)
+  {
+    Serial.println("MLX90640 not detected at default I2C address. Please check wiring. Freezing.");
+    while (1)
+      ;
+  }
+  Serial.println("MLX90640 online!");
 
-    // mlx.setResolution(MLX90640_ADC_18BIT);
-    // Serial.print("Current resolution: ");
-    // mlx90640_resolution_t res = mlx.getResolution();
-    // switch (res)
-    // {
-    // case MLX90640_ADC_16BIT:
-    //     Serial.println("16 bit");
-    //     break;
-    // case MLX90640_ADC_17BIT:
-    //     Serial.println("17 bit");
-    //     break;
-    // case MLX90640_ADC_18BIT:
-    //     Serial.println("18 bit");
-    //     break;
-    // case MLX90640_ADC_19BIT:
-    //     Serial.println("19 bit");
-    //     break;
-    // }
+  // Get device parameters - We only have to do this once
+  int status;
+  uint16_t eeMLX90640[832];
+  status = MLX90640_DumpEE(MLX90640_address, eeMLX90640);
+  if (status != 0)
+    Serial.println("Failed to load system parameters");
 
-    // mlx.setRefreshRate(MLX90640_2_HZ);
-    // Serial.print("Current frame rate: ");
-    // mlx90640_refreshrate_t rate = mlx.getRefreshRate();
-    // switch (rate)
-    // {
-    // case MLX90640_0_5_HZ:
-    //     Serial.println("0.5 Hz");
-    //     break;
-    // case MLX90640_1_HZ:
-    //     Serial.println("1 Hz");
-    //     break;
-    // case MLX90640_2_HZ:
-    //     Serial.println("2 Hz");
-    //     break;
-    // case MLX90640_4_HZ:
-    //     Serial.println("4 Hz");
-    //     break;
-    // case MLX90640_8_HZ:
-    //     Serial.println("8 Hz");
-    //     break;
-    // case MLX90640_16_HZ:
-    //     Serial.println("16 Hz");
-    //     break;
-    // case MLX90640_32_HZ:
-    //     Serial.println("32 Hz");
-    //     break;
-    // case MLX90640_64_HZ:
-    //     Serial.println("64 Hz");
-    //     break;
-    // }
+  status = MLX90640_ExtractParameters(eeMLX90640, &mlx90640);
+  if (status != 0)
+    Serial.println("Parameter extraction failed");
+
+  // Once params are extracted, we can release eeMLX90640 array
 }
 
 void thermocam::takeAPic()
 {
-    delay(500);
-    Serial.println("cheeeese");
-    return;
+  for (byte x = 0; x < 2; x++) // Read both subpages
+  {
+    uint16_t mlx90640Frame[834];
+    int status = MLX90640_GetFrameData(MLX90640_address, mlx90640Frame);
+    if (status < 0)
+    {
+      Serial.print("GetFrame Error: ");
+      Serial.println(status);
+    }
 
-    if (mlx.getFrame(frame) != 0)
-    {
-        Serial.println("Failed");
-        return;
-    }
+    float vdd = MLX90640_GetVdd(mlx90640Frame, &mlx90640);
+    float Ta = MLX90640_GetTa(mlx90640Frame, &mlx90640);
+
+    float tr = Ta - TA_SHIFT; // Reflected temperature based on the sensor ambient temperature
+    float emissivity = 0.95;
+
+    MLX90640_CalculateTo(mlx90640Frame, &mlx90640, emissivity, tr, mlx90640To);
+  }
+
+  for (int x = 0; x < 10; x++)
+  {
+    Serial.print("Pixel ");
+    Serial.print(x);
+    Serial.print(": ");
+    Serial.print(mlx90640To[x], 2);
+    Serial.print("C");
     Serial.println();
-    Serial.println();
-    for (uint8_t h = 0; h < 24; h++)
-    {
-        for (uint8_t w = 0; w < 32; w++)
-        {
-            float t = frame[h * 32 + w];
-            // #ifdef PRINT_TEMPERATURES
-            Serial.print(t, 1);
-            Serial.print(", ");
-            // #endif
-            // #ifdef PRINT_ASCIIART
-            //             char c = '&';
-            //             if (t < 20)
-            //                 c = ' ';
-            //             else if (t < 23)
-            //                 c = '.';
-            //             else if (t < 25)
-            //                 c = '-';
-            //             else if (t < 27)
-            //                 c = '*';
-            //             else if (t < 29)
-            //                 c = '+';
-            //             else if (t < 31)
-            //                 c = 'x';
-            //             else if (t < 33)
-            //                 c = '%';
-            //             else if (t < 35)
-            //                 c = '#';
-            //             else if (t < 37)
-            //                 c = 'X';
-            //             Serial.print(c);
-            // #endif
-        }
-        Serial.println();
-    }
+  }
+
+  delay(1000);
 }
