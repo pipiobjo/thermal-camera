@@ -6,6 +6,10 @@
 #include "./buildinfiles.h" // include default responses
 #include <DNSServer.h>
 #include <thermocam.h>
+#include <Adafruit_MLX90640.h>
+
+// camera
+#include <Wire.h>
 
 #define HOSTNAME "webserver"
 // need a WebServer for http access on port 80.
@@ -14,6 +18,7 @@ ESP8266WebServer server(80);
 DNSServer dnsServer;
 const byte DNS_PORT = 53;
 
+// camera
 thermocam cam;
 
 // ===== Simple functions used to answer simple GET requests =====
@@ -82,6 +87,7 @@ void setup()
   String hostname = WiFi.getHostname();
   Serial.println(("hostname = " + hostname).c_str());
 
+  // camera
   cam.setupCam();
 }
 
@@ -90,5 +96,5 @@ void loop(void)
   server.handleClient();
 
   delay(1000);
-  cam.takeAPic();
+  // cam.takeAPic();
 }
