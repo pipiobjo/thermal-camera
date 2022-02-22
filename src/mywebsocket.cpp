@@ -21,7 +21,7 @@ void mywebsocket::publishData(float data[], size_t size)
         return;
     }
 
-    String result = "";
+    String result = "[";
     for (int i = 0; i < size; i++)
     {
         if (i == 0)
@@ -33,6 +33,7 @@ void mywebsocket::publishData(float data[], size_t size)
             result = result + "," + data[i];
         }
     }
+    result = result + "]";
 
     ws.textAll(result);
 }

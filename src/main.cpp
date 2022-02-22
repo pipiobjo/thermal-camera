@@ -41,6 +41,19 @@ void handleRoot()
   server.send(302);
 }
 
+void handleJS()
+{
+  String url = "/index.htm";
+
+  if (!LittleFS.exists(url))
+  {
+    server.send(404, "text/html", FPSTR(notFoundContent));
+  }
+  server.sendHeader("Location", url, true);
+  server.sendHeader("Content-Type", "application/javascript", false);
+  server.send(302);
+}
+
 void setup()
 {
   Serial.begin(9600);
@@ -67,6 +80,7 @@ void setup()
 
   // register a redirect handler when only domain name is given.
   server.on("/", HTTP_GET, handleRoot);
+  server.on("/simpleImage.js", HTTP_GET, handleJS);
 
   // serve all static files
   server.serveStatic("/", LittleFS, "/");
