@@ -9,7 +9,6 @@ const byte MLX90640_address = 0x33; // Default 7-bit unshifted address of the ML
 
 #define TA_SHIFT 8 // Default shift for MLX90640 in open air
 
-static float mlx90640To[768];
 paramsMLX90640 mlx90640;
 
 // Returns true if the MLX90640 is detected on the I2C bus
@@ -52,7 +51,7 @@ void thermocam::setupCam()
   // Once params are extracted, we can release eeMLX90640 array
 }
 
-void thermocam::takeAPic()
+void thermocam::takeAPic(float *pixelArray, size_t size)
 {
   for (byte x = 0; x < 2; x++) // Read both subpages
   {
@@ -70,18 +69,18 @@ void thermocam::takeAPic()
     float tr = Ta - TA_SHIFT; // Reflected temperature based on the sensor ambient temperature
     float emissivity = 0.95;
 
-    MLX90640_CalculateTo(mlx90640Frame, &mlx90640, emissivity, tr, mlx90640To);
+    MLX90640_CalculateTo(mlx90640Frame, &mlx90640, emissivity, tr, pixelArray);
   }
 
+  return;
   for (int x = 0; x < 10; x++)
   {
     Serial.print("Pixel ");
     Serial.print(x);
     Serial.print(": ");
-    Serial.print(mlx90640To[x], 2);
+    Serial.print(pixelArray[x], 2);
     Serial.print("C");
     Serial.println();
   }
-
-  delay(1000);
+  return;
 }

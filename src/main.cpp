@@ -7,6 +7,7 @@
 #include <DNSServer.h>
 #include <thermocam.h>
 #include <Adafruit_MLX90640.h>
+#include "./mywebsocket.h"
 
 // camera
 #include <Wire.h>
@@ -18,8 +19,13 @@ ESP8266WebServer server(80);
 DNSServer dnsServer;
 const byte DNS_PORT = 53;
 
+// websocket
+mywebsocket websocket;
+
 // camera
 thermocam cam;
+const size_t pixelLength = 768;
+static float mlx90640To[pixelLength];
 
 // ===== Simple functions used to answer simple GET requests =====
 void handleRoot()
@@ -89,6 +95,9 @@ void setup()
 
   // camera
   cam.setupCam();
+
+  // websocket
+  websocket.setupWebsocket();
 }
 
 void loop(void)
@@ -96,5 +105,7 @@ void loop(void)
   server.handleClient();
 
   delay(1000);
-  cam.takeAPic();
+  websocket.cleanupClients();
+  cam.takeAPic(mlx90640To, pixelLength);
+  websocket.publishData(mlx90640To, pixelLength);
 }
