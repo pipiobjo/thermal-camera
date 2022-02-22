@@ -108,6 +108,28 @@
     <script>
         var gateway = `ws://${window.location.hostname}:81/ws`;
         var websocket;
+
+        function calculateRedValue(sensorValue) {
+            var RGB_MAX = 255;
+            var RGB_MIN = 0;
+            var SENSOR_MAX = 35;
+            var SENSOR_MIN = 20;
+
+            return (RGB_MAX - RGB_MIN) / (SENSOR_MAX - SENSOR_MIN) * (sensorValue - SENSOR_MIN) + RGB_MIN;
+
+        }
+
+
+        function calculateBlueValue(sensorValue) {
+            var RGB_MAX = 255;
+            var RGB_MIN = 0;
+            var SENSOR_MAX = 35;
+            var SENSOR_MIN = 20;
+
+            return (RGB_MAX - RGB_MIN) / (SENSOR_MAX - SENSOR_MIN) * (sensorValue - SENSOR_MIN) + RGB_MIN;
+
+        }
+
         window.addEventListener('load', onLoad);
 
         function initWebSocket() {
@@ -128,6 +150,7 @@
         }
 
         function renderTemps(temps) {
+            console.log("temps size=", temps);
             var canvas = document.getElementById("canvasTemp");
             var width = canvas.width;
             var height = canvas.height;
@@ -137,31 +160,25 @@
             for (var pix of img.values()) {
                 var x = pix.getX();
                 var y = pix.getY();
-                if (x >= Math.floor(width / height)) {
-                    pix.setRed(255);
-                    pix.setGreen(0);
-                    pix.setBlue(0);
-                } else {
-                    pix.setRed(0);
-                    pix.setGreen(0);
-                    pix.setBlue(0);
-                }
+                // console.log("x", x);
+                // console.log("y", y);
+                var redValue = calculateRedValue(temps[x + y * 32]);
+                pix.setRed(redValue);
+                pix.setGreen(0);
+                pix.setBlue(255 - redValue);
             }
             img.drawTo(canvas);
         }
 
         function onMessage(event) {
             var wsResult = event.data
-            wsResult =
-                "27.89,26.83,26.14,26.07,25.75,26.40,29.26,30.12,29.12,30.08,26.53,26.87,27.11,26.79,26.97,26.67,26.86,26.75,27.08,27.14,27.99,28.11,27.56,27.59,28.22,28.52,32.01,33.79,34.66,34.65,33.14,32.50,27.26,26.94,26.18,25.51,25.96,26.74,29.50,30.43,29.38,29.73"
-
             var temps = JSON.parse(wsResult);
             console.log(temps);
             renderTemps(temps);
         }
 
         function onLoad(event) {
-            // initWebSocket();
+            initWebSocket();
 
             initButton();
         }

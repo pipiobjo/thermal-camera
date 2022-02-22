@@ -43,7 +43,7 @@ void handleRoot()
 
 void handleJS()
 {
-  String url = "/index.htm";
+  String url = "/SimpleImage.js";
 
   if (!LittleFS.exists(url))
   {
@@ -118,7 +118,7 @@ void loop(void)
 {
   server.handleClient();
 
-  delay(1000);
+  delay(200);
   websocket.cleanupClients();
   cam.takeAPic(mlx90640To, pixelLength);
   websocket.publishData(mlx90640To, pixelLength);

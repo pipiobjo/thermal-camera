@@ -27,13 +27,20 @@ void mywebsocket::publishData(float data[], size_t size)
         if (i == 0)
         {
             result = result + data[i];
+            Serial.print("i=" + i);
+            Serial.print(" result=" + result);
+            Serial.println();
         }
         else
         {
             result = result + "," + data[i];
+            // Serial.print("i=" + i);
+            // Serial.print(" result=" + result);
+            // Serial.println();
         }
     }
     result = result + "]";
+    Serial.println(" final result=" + result);
 
     ws.textAll(result);
 }
