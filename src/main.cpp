@@ -118,8 +118,8 @@ void loop(void)
 {
   server.handleClient();
 
-  delay(200);
+  delay(5000);
   websocket.cleanupClients();
-  cam.takeAPic(mlx90640To, pixelLength);
-  websocket.publishData(mlx90640To, pixelLength);
+  std::vector<float> v = cam.takeAPic();
+  websocket.publishData(v);
 }
