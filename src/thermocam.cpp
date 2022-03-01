@@ -5,11 +5,16 @@
 #include "MLX90640_API.h"
 #include "MLX90640_I2C_Driver.h"
 
+#include <vector>
+
 const byte MLX90640_address = 0x33; // Default 7-bit unshifted address of the MLX90640
 
 #define TA_SHIFT 8 // Default shift for MLX90640 in open air
 
 paramsMLX90640 mlx90640;
+
+const size_t pixelLength = 768;
+static float pixelArray[pixelLength];
 
 // Returns true if the MLX90640 is detected on the I2C bus
 boolean isConnected()
@@ -51,7 +56,7 @@ void thermocam::setupCam()
   // Once params are extracted, we can release eeMLX90640 array
 }
 
-void thermocam::takeAPic(float *pixelArray, size_t size)
+std::vector<float> thermocam::takeAPic()
 {
   for (byte x = 0; x < 2; x++) // Read both subpages
   {
@@ -72,15 +77,16 @@ void thermocam::takeAPic(float *pixelArray, size_t size)
     MLX90640_CalculateTo(mlx90640Frame, &mlx90640, emissivity, tr, pixelArray);
   }
 
-  return;
-  for (int x = 0; x < 10; x++)
-  {
-    Serial.print("Pixel ");
-    Serial.print(x);
-    Serial.print(": ");
-    Serial.print(pixelArray[x], 2);
-    Serial.print("C");
-    Serial.println();
-  }
-  return;
+  // for (int x = 0; x < 10; x++)
+  // {
+  //   Serial.print("Pixel ");
+  //   Serial.print(x);
+  //   Serial.print(": ");
+  //   Serial.print(pixelArray[x], 2);
+  //   Serial.print("C");
+  //   Serial.println();
+  // }
+  std::vector<float> v(pixelArray, pixelArray + sizeof pixelArray / sizeof pixelArray[0]);
+
+  return v;
 }

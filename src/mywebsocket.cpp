@@ -3,6 +3,7 @@
 // websocket
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <vector>
 
 // Create AsyncWebServer object on port 81
 AsyncWebServer websocket_server(81);
@@ -11,9 +12,15 @@ static int clientCounter = 0;
 
 void mywebsocket::cleanupClients()
 {
-    ws.cleanupClients(4);
+    Serial.println("Cleanup Websockets");
+    ws.cleanupClients(1);
+    delay(1000);
+    for (AsyncWebSocketClient *client : ws.getClients())
+    {
+        Serial.printf("Cleanup Websockets: active client:%i -> Free Heap : %i\n", client->id(), ESP.getFreeHeap());
+    }
 }
-void mywebsocket::publishData(float data[], size_t size)
+void mywebsocket::publishData(std::vector<float> data)
 {
 
     if (clientCounter == 0)
@@ -21,28 +28,45 @@ void mywebsocket::publishData(float data[], size_t size)
         return;
     }
 
-    String result = "[";
-    for (int i = 0; i < size; i++)
+    if (!ws.availableForWriteAll())
+    {
+        Serial.println("skip publishing data -> restart");
+        // ws.cleanupClients();
+        ESP.restart();
+        return;
+    }
+    Serial.printf("TMPL : Start -> Free Heap : %i\n", ESP.getFreeHeap());
+
+    int decimals = 0;
+    String result;
+    result.reserve(3841);
+    result.concat(String("["));
+    for (int i = 0; i < data.size(); i++)
     {
         if (i == 0)
         {
-            result = result + data[i];
-            Serial.print("i=" + i);
-            Serial.print(" result=" + result);
-            Serial.println();
+            result.concat(String(data.at(i), decimals));
         }
         else
         {
-            result = result + "," + data[i];
-            // Serial.print("i=" + i);
-            // Serial.print(" result=" + result);
-            // Serial.println();
+            result.concat(String(","));
+            result.concat(String(data.at(i), decimals));
         }
     }
-    result = result + "]";
-    Serial.println(" final result=" + result);
+    result.concat(String("]"));
+    // Serial.print("final result=");
+    // Serial.println(result.length());
+    // Serial.println();
+    char char_array[result.length() + 1];
 
-    ws.textAll(result);
+    result.toCharArray(char_array, result.length() + 1);
+
+    for (AsyncWebSocketClient *client : ws.getClients())
+    {
+        ws.text(client->id(), char_array);
+        // Serial.printf("After Pushing to client:%i -> Free Heap : %i\n", client->id(), ESP.getFreeHeap());
+    }
+    Serial.printf("TMPL : DONE Sending Websocket -> Free Heap : %i\n", ESP.getFreeHeap());
 }
 
 static void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type,
@@ -72,5 +96,6 @@ void mywebsocket::setupWebsocket()
     Serial.println("setup websocket");
     ws.onEvent(onEvent);
     websocket_server.addHandler(&ws);
+
     websocket_server.begin();
 }

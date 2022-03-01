@@ -1,0 +1,43 @@
+= Thermal Cam Wifi 
+
+
+== Hardware
+
+* https://www.melexis.com/en/product/MLX90640/Far-Infrared-Thermal-Sensor-Array[MLX90640]
+* https://www.az-delivery.de/products/d1-mini[ESP8266-12F]
+
+Access it via <http://192.168.4.1/index.htm>
+
+equation for temperature scaling:
+
+RGB_MAX=255
+RGB_MIN=0
+SENSOR_MAX=50
+SENSOR_MIN=0
+
+$$\frac{RGB_{max}-RGB_{min}}{T_{max}-T_{min}}*(T_{Sensor}-T_{min})+RGB_{min}$$
+
+
+== Tinygo
+
+Tinygo would be the technical preferred way, but until now now WIFI Module is supported.
+https://tinygo.org/docs/reference/microcontrollers/esp32-coreboard-v2/
+https://tinygo.org/docs/reference/microcontrollers/esp32-mini32/
+https://tinygo.org/docs/reference/microcontrollers/nodemcu/
+
+== TODO:
+
+Use https://registry.platformio.org/libraries/gilmaimon/ArduinoWebsockets
+
+
+== Filesystem
+
+LittleFS
+https://arduino-esp8266.readthedocs.io/en/latest/filesystem.html
+
+
+== Debugging 
+
+https://arduino-esp8266.readthedocs.io/en/latest/faq/a02-my-esp-crashes.html#exception
+
+https://github.com/me-no-dev/EspExceptionDecoder

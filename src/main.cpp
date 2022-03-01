@@ -4,7 +4,7 @@
 #include <FS.h>             // File System for Web Server Files
 #include <LittleFS.h>       // This file system is used.
 #include "./buildinfiles.h" // include default responses
-#include <DNSServer.h>
+// #include <DNSServer.h>
 #include <thermocam.h>
 #include <Adafruit_MLX90640.h>
 #include "./mywebsocket.h"
@@ -16,16 +16,16 @@
 // need a WebServer for http access on port 80.
 ESP8266WebServer server(80);
 
-DNSServer dnsServer;
-const byte DNS_PORT = 53;
+// DNSServer dnsServer;
+// const byte DNS_PORT = 53;
 
 // websocket
 mywebsocket websocket;
 
 // camera
 thermocam cam;
-const size_t pixelLength = 768;
-static float mlx90640To[pixelLength];
+// const size_t pixelLength = 768;
+// static float mlx90640To[pixelLength];
 
 // ===== Simple functions used to answer simple GET requests =====
 void handleRoot()
@@ -41,19 +41,6 @@ void handleRoot()
   server.send(302);
 }
 
-void handleJS()
-{
-  String url = "/SimpleImage.js";
-
-  if (!LittleFS.exists(url))
-  {
-    server.send(404, "text/html", FPSTR(notFoundContent));
-  }
-  server.sendHeader("Location", url, true);
-  server.sendHeader("Content-Type", "application/javascript", false);
-  server.send(302);
-}
-
 void setup()
 {
   Serial.begin(9600);
@@ -62,13 +49,12 @@ void setup()
   if (!LittleFS.begin())
   {
     Serial.println("could not mount the filesystem...\n");
-    delay(2000);
+    delay(200);
     ESP.restart();
   }
 
   Serial.println("");
   Serial.println("Starte WLAN-Hotspot \"astral\"");
-  delay(500);
   WiFi.mode(WIFI_AP);                // access point modus
   WiFi.softAP("astral", "12345678"); // Name des Wi-Fi netzes
   WiFi.begin();
@@ -80,7 +66,6 @@ void setup()
 
   // register a redirect handler when only domain name is given.
   server.on("/", HTTP_GET, handleRoot);
-  server.on("/simpleImage.js", HTTP_GET, handleJS);
 
   // serve all static files
   server.serveStatic("/", LittleFS, "/");
@@ -89,19 +74,6 @@ void setup()
                     { server.send(404, "text/html", FPSTR(notFoundContent)); });
 
   server.begin();
-
-  // modify TTL associated  with the domain name (in seconds)
-  // default is 60 seconds
-  dnsServer.setTTL(300);
-
-  // set which return code will be used for all other domains (e.g. sending
-  // ServerFailure instead of NonExistentDomain will reduce number of queries
-  // sent by clients)
-  // default is DNSReplyCode::NonExistentDomain
-  dnsServer.setErrorReplyCode(DNSReplyCode::ServerFailure);
-
-  // start DNS server for a specific domain name
-  dnsServer.start(DNS_PORT, "example.local", WiFi.softAPIP());
 
   delay(500);
   String hostname = WiFi.getHostname();
@@ -118,7 +90,7 @@ void loop(void)
 {
   server.handleClient();
 
-  delay(5000);
+  delay(600);
   websocket.cleanupClients();
   std::vector<float> v = cam.takeAPic();
   websocket.publishData(v);
