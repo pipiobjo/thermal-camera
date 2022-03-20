@@ -1,42 +1,20 @@
-/*
-  Read the temperature pixels from the MLX90640 IR array
-  By: Nathan Seidle
-  SparkFun Electronics
-  Date: May 22nd, 2018
-  License: MIT. See license file for more information but you can
-  basically do whatever you want with this code.
-
-  Feel like supporting open source hardware?
-  Buy a board from SparkFun! https://www.sparkfun.com/products/14769
-
-  This example initializes the MLX90640 and outputs the 768 temperature values
-  from the 768 pixels.
-
-  This example will work with a Teensy 3.1 and above. The MLX90640 requires some
-  hefty calculations and larger arrays. You will need a microcontroller with 20,000
-  bytes or more of RAM.
-
-  This relies on the driver written by Melexis and can be found at:
-  https://github.com/melexis/mlx90640-library
-
-  Hardware Connections:
-  Connect the SparkFun Qwiic Breadboard Jumper (https://www.sparkfun.com/products/14425)
-  to the Qwiic board
-  Connect the male pins to the Teensy. The pinouts can be found here: https://www.pjrc.com/teensy/pinout.html
-  Open the serial monitor at 9600 baud to see the output
-*/
 #include <Arduino.h>
 #include <Wire.h>
+#include <thermocam.h>
 
 #include "MLX90640_API.h"
 #include "MLX90640_I2C_Driver.h"
+
+#include <vector>
 
 const byte MLX90640_address = 0x33; // Default 7-bit unshifted address of the MLX90640
 
 #define TA_SHIFT 8 // Default shift for MLX90640 in open air
 
-static float mlx90640To[768];
 paramsMLX90640 mlx90640;
+
+const size_t pixelLength = 768;
+static float pixelArray[pixelLength];
 
 // Returns true if the MLX90640 is detected on the I2C bus
 boolean isConnected()
@@ -47,12 +25,11 @@ boolean isConnected()
   return (true);
 }
 
-void setup()
+void thermocam::setupCam()
 {
   Wire.begin();
   Wire.setClock(400000); // Increase I2C clock speed to 400kHz
 
-  Serial.begin(9600);
   while (!Serial)
     ; // Wait for user to open terminal
   Serial.println("MLX90640 IR Array Example");
@@ -79,7 +56,7 @@ void setup()
   // Once params are extracted, we can release eeMLX90640 array
 }
 
-void loop()
+std::vector<float> thermocam::takeAPic()
 {
   for (byte x = 0; x < 2; x++) // Read both subpages
   {
@@ -97,18 +74,19 @@ void loop()
     float tr = Ta - TA_SHIFT; // Reflected temperature based on the sensor ambient temperature
     float emissivity = 0.95;
 
-    MLX90640_CalculateTo(mlx90640Frame, &mlx90640, emissivity, tr, mlx90640To);
+    MLX90640_CalculateTo(mlx90640Frame, &mlx90640, emissivity, tr, pixelArray);
   }
 
-  for (int x = 0; x < 10; x++)
-  {
-    Serial.print("Pixel ");
-    Serial.print(x);
-    Serial.print(": ");
-    Serial.print(mlx90640To[x], 2);
-    Serial.print("C");
-    Serial.println();
-  }
+  // for (int x = 0; x < 10; x++)
+  // {
+  //   Serial.print("Pixel ");
+  //   Serial.print(x);
+  //   Serial.print(": ");
+  //   Serial.print(pixelArray[x], 2);
+  //   Serial.print("C");
+  //   Serial.println();
+  // }
+  std::vector<float> v(pixelArray, pixelArray + sizeof pixelArray / sizeof pixelArray[0]);
 
-  delay(1000);
+  return v;
 }

@@ -54,9 +54,9 @@ void setup()
   }
 
   Serial.println("");
-  Serial.println("Starte WLAN-Hotspot \"astral\"");
-  WiFi.mode(WIFI_AP);                // access point modus
-  WiFi.softAP("astral", "12345678"); // Name des Wi-Fi netzes
+  Serial.println("Starte WLAN-Hotspot \"thermalcam\"");
+  WiFi.mode(WIFI_AP);                    // access point modus
+  WiFi.softAP("thermalcam", "12345678"); // Name des Wi-Fi netzes
   WiFi.begin();
   WiFi.setHostname(HOSTNAME);
 

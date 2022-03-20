@@ -1,12 +1,46 @@
 = Thermal Cam Wifi 
 
 
+== Usage
+
+=== Connect to Wifi
+
+WPA2
+SSID: thermalcam
+PWD: 12345678
+
+image::./thermalcam-connect-wifi.png[Connect to Wifi]
+
+
+=== Open URL
+
+http://192.168.4.1/index.htm
+
+image::./thermalcam-open-website.png[Open URL http://192.168.4.1/index.htm]
+
+
+
 == Hardware
 
+=== Thermalcamera
+
 * https://www.melexis.com/en/product/MLX90640/Far-Infrared-Thermal-Sensor-Array[MLX90640]
+
+
+
+
+=== ESP8266
+
 * https://www.az-delivery.de/products/d1-mini[ESP8266-12F]
 
-Access it via <http://192.168.4.1/index.htm>
+SDA -> D2 (Data)
+SCL -> D3 (Clock)
+
+=== ESP32
+
+SDA -> D2 (Data)
+SCL -> D3 (Clock)
+
 
 equation for temperature scaling:
 

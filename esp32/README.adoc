@@ -1,0 +1,20 @@
+
+## websocket sample
+https://www.mischianti.org/2020/12/15/websocket-on-arduino-esp8266-and-esp32-server-authentication-2/
+
+## colorize temperatures
+http://n4te.com/x/4179-qRLn.txt
+https://www.diva-portal.org/smash/get/diva2:797457/FULLTEXT01.pdf
+https://github.com/neilbartlett/color-temperature/blob/master/index.js
+https://gist.github.com/eladkarako/96143e625ff1d24afb293420e8760a6b
+https://github.com/szymslo/temp-color/blob/main/src/index.js
+https://www.zombieprototypes.com/?p=210
+
+https://unsinnsbasis.de/littlefs-esp32/
+https://www.mischianti.org/2021/04/01/esp32-integrated-littlefs-filesystem-5/
+
+
+https://www.instructables.com/Infrared-Thermal-Imaging-Camera-With-MLX90640-and-/
+https://github.com/sparkfun/SparkFun_MLX90640_Arduino_Example/blob/master/Firmware/Example1_BasicReadings/Example1_BasicReadings.ino
+
+

@@ -250,9 +250,8 @@
                         for (var xi = xValues.length; xi > 0; xi--) {
                             if (sortedTempArray[yi][xi] === undefined) {
                                 continue;
-                            } //
+                            }
                             // console.log("ii=" + ii + " xi=" + xi + " yi=" + yi + " temp: " + sortedTempArray[yi][xi]);
-                            // buildPixelData(data, temps[ii], ii);
                             buildPixelData(data, sortedTempArray[yi][xi], ii);
                             ii++;
                         }
